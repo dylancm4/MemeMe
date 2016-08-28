@@ -8,7 +8,7 @@
 
 import UIKit
 
-class Meme
+struct Meme
 {
     var topText: String
     var bottomText: String
@@ -25,7 +25,7 @@ class Meme
         self.memedImage = memedImage
     }
     
-    func setProperties(
+    mutating func setProperties(
         topText topText: String, bottomText: String, originalImage: UIImage,
         memedImage: UIImage)
     {

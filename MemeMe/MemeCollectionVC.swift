@@ -18,11 +18,6 @@ class MemeCollectionVC: UIViewController, UICollectionViewDataSource, UICollecti
         return (UIApplication.sharedApplication().delegate as! AppDelegate)
     }
     
-    override func viewDidLoad()
-    {
-        super.viewDidLoad()
-    }
-
     override func viewWillAppear(animated: Bool)
     {
         super.viewWillAppear(animated)

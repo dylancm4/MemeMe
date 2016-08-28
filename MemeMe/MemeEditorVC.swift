@@ -41,21 +41,8 @@ class MemeEditorVC:
     {
         super.viewDidLoad()
         
-        // Set the font of the text fields. Text should approximate the "Impact"
-        // font, all caps, white with a black outline.
-        let memeTextAttributes =
-        [
-            NSStrokeColorAttributeName : UIColor.blackColor(),
-            NSForegroundColorAttributeName : UIColor.whiteColor(),
-            NSFontAttributeName : UIFont(name: "HelveticaNeue-CondensedBlack", size: 40)!,
-            NSStrokeWidthAttributeName : -2.0,
-        ]
-        topTextField.defaultTextAttributes = memeTextAttributes
-        bottomTextField.defaultTextAttributes = memeTextAttributes
-        
-        // Center align the text fields.
-        topTextField.textAlignment = .Center
-        bottomTextField.textAlignment = .Center
+        configureTextField(topTextField)
+        configureTextField(bottomTextField)
 
         lastImagePickerViewFrame = nil
         lastImageSize = nil
@@ -71,6 +58,23 @@ class MemeEditorVC:
         // Adjust the constraints when the view loads.
         print("adjustConstraints: viewDidLoad")
         adjustConstraints(0)
+    }
+    
+    func configureTextField(textField: UITextField)
+    {
+        // Set the font of the text field. Text should approximate the "Impact"
+        // font, all caps, white with a black outline.
+        let memeTextAttributes =
+        [
+            NSStrokeColorAttributeName : UIColor.blackColor(),
+            NSForegroundColorAttributeName : UIColor.whiteColor(),
+            NSFontAttributeName : UIFont(name: "HelveticaNeue-CondensedBlack", size: 40)!,
+            NSStrokeWidthAttributeName : -2.0,
+        ]
+        textField.defaultTextAttributes = memeTextAttributes
+        
+        // Center align the text field.
+        textField.textAlignment = .Center
     }
     
     override func viewWillAppear(animated: Bool)
@@ -146,17 +150,19 @@ class MemeEditorVC:
     
     @IBAction func pickImageFromAlbum(sender: UIBarButtonItem)
     {
-        let pickerController = UIImagePickerController()
-        pickerController.delegate = self
-        pickerController.sourceType = UIImagePickerControllerSourceType.PhotoLibrary
-        presentViewController(pickerController, animated: true, completion: nil)
+        pickImageFromSource(UIImagePickerControllerSourceType.PhotoLibrary)
     }
     
     @IBAction func pickImageFromCamera(sender: UIBarButtonItem)
     {
+        pickImageFromSource(UIImagePickerControllerSourceType.Camera)
+    }
+    
+    func pickImageFromSource(source: UIImagePickerControllerSourceType)
+    {
         let pickerController = UIImagePickerController()
         pickerController.delegate = self
-        pickerController.sourceType = UIImagePickerControllerSourceType.Camera
+        pickerController.sourceType = source
         presentViewController(pickerController, animated: true, completion: nil)
     }
     
@@ -206,7 +212,7 @@ class MemeEditorVC:
             print("adjustConstraints: keyboardWillShow")
             let keyboardHeight = getKeyboardHeight(notification)
             adjustConstraints(-(keyboardHeight - toolbar.frame.height))
-       }
+        }
     }
     
     func keyboardWillHide(notification: NSNotification)
