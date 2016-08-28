@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MemeEditorVC.swift
 //  MemeMe
 //
 //  Created by Dylan Miller on 6/21/16.
@@ -9,23 +9,9 @@
 import UIKit
 import AVFoundation
 
-struct Meme
-{
-    var topText: String
-    var bottomText: String
-    var originalImage: UIImage
-    var memedImage: UIImage
-    
-    init(topText: String, bottomText: String, originalImage: UIImage, memedImage: UIImage)
-    {
-        self.topText = topText
-        self.bottomText = bottomText
-        self.originalImage = originalImage
-        self.memedImage = memedImage
-    }
-}
-
-class ViewController: UIViewController, UIImagePickerControllerDelegate, UITextFieldDelegate, UINavigationControllerDelegate
+class MemeEditorVC:
+    UIViewController, UIImagePickerControllerDelegate,
+    UITextFieldDelegate, UINavigationControllerDelegate
 {
     @IBOutlet weak var shareMemeButton: UIBarButtonItem!
     @IBOutlet weak var imagePickerView: UIImageView!
@@ -41,16 +27,19 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UITextF
     @IBOutlet weak var bottomTextFieldLeadingConstraint: NSLayoutConstraint!
     @IBOutlet weak var bottomTextFieldWidthConstraint: NSLayoutConstraint!
     
+    var editMemeIndex: Int?
     var keyboardShowing = false
     var lastImagePickerViewFrame: CGRect?
     var lastImageSize: CGSize?
+
+    var appDelegate : AppDelegate
+    {
+        return (UIApplication.sharedApplication().delegate as! AppDelegate)
+    }
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
-        topTextField.delegate = self
-        bottomTextField.delegate = self
         
         // Set the font of the text fields. Text should approximate the "Impact"
         // font, all caps, white with a black outline.
@@ -70,6 +59,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UITextF
 
         lastImagePickerViewFrame = nil
         lastImageSize = nil
+        
+        if let editMemeIndex = editMemeIndex // editing existing meme
+        {
+            let meme = appDelegate.memes[editMemeIndex]
+            imagePickerView.image = meme.originalImage
+            topTextField.text = meme.topText
+            bottomTextField.text = meme.bottomText
+        }
         
         // Adjust the constraints when the view loads.
         print("adjustConstraints: viewDidLoad")
@@ -125,6 +122,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UITextF
                     if completed
                     {
                         self.saveMeme(memedImage)
+                        self.dismissViewControllerAnimated(true, completion: nil)
                     }
             }
             presentViewController(controller, animated: true, completion: nil)
@@ -133,6 +131,9 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UITextF
     
     @IBAction func cancelMeme(sender: UIBarButtonItem)
     {
+        dismissViewControllerAnimated(true, completion: nil)
+
+        /* MemeMe 1.0 code: Keep, in case we want to add a reset button.
         // Restore the default launch state, with no image a default text.
         imagePickerView.image = nil
         topTextField.text = topTextField.placeholder
@@ -140,7 +141,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UITextF
         
         // Adjust the constraints when no image is selected.
         print("adjustConstraints: cancelMeme")
-        adjustConstraints(0)
+        adjustConstraints(0)(*/
     }
     
     @IBAction func pickImageFromAlbum(sender: UIBarButtonItem)
@@ -180,10 +181,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UITextF
     func subscribeToNotifications()
     {
         NSNotificationCenter.defaultCenter().addObserver(
-            self, selector: #selector(ViewController.keyboardWillShow(_:)),
+            self, selector: #selector(MemeEditorVC.keyboardWillShow(_:)),
             name: UIKeyboardWillShowNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(
-            self, selector: #selector(ViewController.keyboardWillHide(_:)),
+            self, selector: #selector(MemeEditorVC.keyboardWillHide(_:)),
             name: UIKeyboardWillHideNotification, object: nil)
     }
     
@@ -307,15 +308,26 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UITextF
             bottomText = bottomTextField.text,
             originalImage = imagePickerView.image
         {
-            // Create a Meme object.
-            let meme = Meme(
-                topText: topText,
-                bottomText: bottomText,
-                originalImage: originalImage,
-                memedImage: memedImage)
-        
-            // In MemeMe version 1, nothing is done with the Meme struct, but
-            // this code will be expanded on in MemeMe version 2.
+            if let editMemeIndex = editMemeIndex // editing existing meme
+            {
+                appDelegate.memes[editMemeIndex].setProperties(
+                    topText: topText,
+                    bottomText: bottomText,
+                    originalImage: originalImage,
+                    memedImage: memedImage)
+            }
+            else
+            {
+                // Create a Meme object.
+                let meme = Meme(
+                    topText: topText,
+                    bottomText: bottomText,
+                    originalImage: originalImage,
+                    memedImage: memedImage)
+            
+                // Add the meme to the appDelegate memes[] array.
+                appDelegate.memes.append(meme)
+            }
         }
     }
     
